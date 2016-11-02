@@ -1,9 +1,26 @@
 $(document).ready ( function () {
 	$(window).load ( function () {
 
-		$.get ( "http://raffi.io/SWIPE/api/events/", function ( data, status ) {
-    	    alert ( "Data: " + data + "\nStatus: " + status );
-    	});
+
+		// Get the events
+		$.ajax({
+			url: "http://raffi.io/SWIPE/api/events/index.php",
+			type: "GET",
+			dataType: "html",
+			success: function ( data ) {
+				var events = jQuery.parseJSON ( data ) ["events"];
+				var html = "<select>";
+				$.each ( events, function ( index, event ) {
+					html += "<option value='" + event ["event"] + "' >" + event ["event"] + "</option>";
+				});
+				html += "</select>";
+				$("#events").html ( html );
+				$("#events").append ("<div id='eventSubmit' >Choose Event</div>");
+			}
+		});
+
+		// Initialize the event name
+		var choosen = "";
 
 		// Initialize buffer variable
 		var buffer = "";
@@ -49,8 +66,17 @@ $(document).ready ( function () {
 		}
 
 		function submit ( data ) {
-			showAndHide ( "Your UIN is " + data, "#008C9E" );
-			animateCircle ();
+			$.ajax({
+				url: "http://raffi.io/SWIPE/api/events/signin/index.php",
+				type: "POST",
+				data: { "uin": data, "event": choosen },
+				dataType: "html",
+				success: function ( data ) {
+					var result = jQuery.parseJSON ( data );
+					showAndHide ( "Thank you <b>" + result ["firstName"] + " " + result ["lastName"] + "</b>. You now have <b>" + result ["points"] + "</b> points!", "#008C9E" );
+					animateCircle ();
+				}
+			});
 		}
 
 		function error ( message ) {
@@ -74,8 +100,16 @@ $(document).ready ( function () {
 		}
 
 		$(document).keypress ( function ( event ) {
+			// Make sure an event is chosen
+			if ( choosen == "" ) {
+				// Return and don't do anything else
+				return;
+			}
+			// Get the key that was pressed
 			var char = String.fromCharCode ( event.which );
+			// If it was the enter key (new line)
 			if ( event.which == 13 ) {
+				// Change the color of the logo
 				$(".LogoColor").css ({ "fill": "#EBC354" });
 				var uin = validate ( buffer );
 				if ( Number.isInteger ( uin ) ) {
@@ -89,6 +123,15 @@ $(document).ready ( function () {
 			else {
 				buffer += char;
 			}
+		});
+
+		$(document).on ( "click", "#eventSubmit", function () {
+			// Save the chosen event
+			choosen = $("#events select").find (":selected").attr ("value");
+			// Animate the light box out
+			$("body").animate ({ "background-color": "#FFFFFF" }, 600 );
+			$("#events").animate ({ "opacity": "0.0" }, 600 );
+			$("#Logo").animate ({ "opacity": "1.0" }, 600 );
 		});
 
 	});
