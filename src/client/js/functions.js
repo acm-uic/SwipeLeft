@@ -1,3 +1,17 @@
+var DEBUG = 1;
+var returnValue ;
+
+function debug(string) {
+	if (DEBUG) {
+		put(string);
+	}
+}
+
+function error  ( msg )  {console.log ( '%c ERROR: '  + String(msg),'color:red;'    );  };
+function warning( msg )  {console.log ( '%c WARNING: '+ String(msg),'color:orange;' );  };
+function passed ( msg )  {console.log ( '%c PASSED: ' + String(msg),'color:green;'  );  };
+function put    ( msg )  {console.log ( '%c MSG: '    + String(msg),'color:black;'  );  };
+
 $(document).ready ( function () {
 	$(window).load ( function () {
 
@@ -15,7 +29,7 @@ $(document).ready ( function () {
 				});
 				html += "</select>";
 				$("#events").html ( html );
-				$("#events").append ("<div id='eventSubmit' >Choose Event</div>");
+				$("#events").append ("<div id='eventSubmit' >Choose Event</div>");	
 			}
 		});
 
@@ -39,7 +53,7 @@ $(document).ready ( function () {
 				"margin-left": 			"-" + ( radius / 2 ) + "px",
 				"border-radius": 		radius + "px",
 				"opacity": 				"0.0"
-			}, 1000, function () {
+			}, 500, function () {
 				// After the animation is complete, reset the attributes
 				$("#circle").css ({
 					"height": 				"0px",
@@ -57,9 +71,9 @@ $(document).ready ( function () {
 			// Animate the logo color using CSS
 			$(".LogoColor").css ({ "fill": color, "transition": "1.0s" });
 			//
-			$("#message").animate ( { opacity: 0.0 }, 300, function () {
+			$("#message").animate ( { opacity: 0.0 }, 150, function () {
 				$("#message").html ( data );
-				$("#message").animate ( { opacity: 1.0 }, 300 ).delay ( 1100 ).animate ( { opacity: 0.0 }, 300, function () {
+				$("#message").animate ( { opacity: 1.0 }, 150 ).delay ( 500 ).animate ( { opacity: 0.0 }, 150, function () {
 					$(".LogoColor").css ({ "fill": "#D90000", "transition": "1.0s" });
 				});
 			});
@@ -75,17 +89,31 @@ $(document).ready ( function () {
 					var result = jQuery.parseJSON ( data );
 					showAndHide ( "Thank you <b>" + result ["firstName"] + " " + result ["lastName"] + "</b>. You now have <b>" + result ["points"] + "</b> points!", "#008C9E" );
 					animateCircle ();
+				},
+				error: function ( data ){
+					try{
+						if ( String( jQuery.parseJSON ( data.responseText ).error ) === "user already signed into this event") {
+							warning( "user already signed into this event" );
+						}
+						else if ( String( jQuery.parseJSON ( data.responseText ).error ) === "event is not ongoing") {
+							warning( "event is not ongoing" );
+						}
+						else{
+							error( "Unknown Error" );
+							console.log( data );
+						}
+					}
+					catch(event){
+							error( "Unknown error raw returned object is below" );
+							console.log( data );						
+					}
 				}
 			});
 		}
 
-		function error ( message ) {
-			showAndHide ( message, "#D90000" );
-		}
-
 		function validate ( data ) {
 			data = String ( data );
-			console.log(data);
+			debug ( data );
 			if ( data.startsWith ("%") ) {
 				if ( data.search ( "CARDHOLDER/UNIVERSITY" ) === -1 ) {
 					return "Error: Invalid UIN. Please try again!";
@@ -98,12 +126,11 @@ $(document).ready ( function () {
 			else if ( data.startsWith ("35") ) {
 				return Number ( data.substring ( 8, 17 ) );
 			}
-			else if ( Number(String(data).length) === Number(30) ) {
-
+			else if ( Number ( String (data).length ) === Number (31) ) {
 				return Number ( data.substring ( 5, 14 ) );
 			}
 			else {
-				console.log("Error: Card not valid."+data);
+				error( "Error: Card not valid." + data );
 				return "Error: Card not valid.";
 			}
 		}
@@ -118,10 +145,10 @@ $(document).ready ( function () {
 			var char = String.fromCharCode ( event.which );
 			// If it was the enter key (new line)
 			if ( event.which == 13 ) {
-				// Change the color of the logo
-				$(".LogoColor").css ({ "fill": "#EBC354" });
 				var uin = validate ( buffer );
 				if ( Number.isInteger ( uin ) ) {
+					// Change the color of the logo
+					$(".LogoColor").css ({ "fill": "#EBC354" });
 					submit ( uin );
 				}
 				else {
@@ -141,7 +168,7 @@ $(document).ready ( function () {
 			$("body").animate ({ "background-color": "#FFFFFF" }, 600 );
 			$("#events").animate ({ "opacity": "0.0" }, 600, function(){
 				// Prevent further user interaction
-				$(this).hide();
+				$(this).hide ();
 			} );
 			$("#Logo").animate ({ "opacity": "1.0" }, 600 );
 		});
