@@ -4,7 +4,7 @@ $(document).ready ( function () {
 
 		// Get the events
 		$.ajax({
-			url: "http://raffi.io/SWIPE/api/events/index.php",
+			url: "https://acm.cs.uic.edu/rest/api/events",
 			type: "GET",
 			dataType: "html",
 			success: function ( data ) {
@@ -67,7 +67,7 @@ $(document).ready ( function () {
 
 		function submit ( data ) {
 			$.ajax({
-				url: "http://raffi.io/SWIPE/api/events/signin/index.php",
+				url: "https://acm.cs.uic.edu/rest/api/events/signin",
 				type: "POST",
 				data: { "uin": data, "event": choosen },
 				dataType: "html",
@@ -85,6 +85,7 @@ $(document).ready ( function () {
 
 		function validate ( data ) {
 			data = String ( data );
+			console.log(data);
 			if ( data.startsWith ("%") ) {
 				if ( data.search ( "CARDHOLDER/UNIVERSITY" ) === -1 ) {
 					return "Error: Invalid UIN. Please try again!";
@@ -94,7 +95,15 @@ $(document).ready ( function () {
 			else if ( data.startsWith ("+") ) {
 				return Number ( data.substring ( 5, 14 ) );
 			}
+			else if ( data.startsWith ("35") ) {
+				return Number ( data.substring ( 8, 17 ) );
+			}
+			else if ( Number(String(data).length) === Number(30) ) {
+
+				return Number ( data.substring ( 5, 14 ) );
+			}
 			else {
+				console.log("Error: Card not valid."+data);
 				return "Error: Card not valid.";
 			}
 		}
@@ -130,7 +139,10 @@ $(document).ready ( function () {
 			choosen = $("#events select").find (":selected").attr ("value");
 			// Animate the light box out
 			$("body").animate ({ "background-color": "#FFFFFF" }, 600 );
-			$("#events").animate ({ "opacity": "0.0" }, 600 );
+			$("#events").animate ({ "opacity": "0.0" }, 600, function(){
+				// Prevent further user interaction
+				$(this).hide();
+			} );
 			$("#Logo").animate ({ "opacity": "1.0" }, 600 );
 		});
 
